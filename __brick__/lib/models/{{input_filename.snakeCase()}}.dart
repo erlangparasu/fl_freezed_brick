@@ -4,8 +4,8 @@ import 'dart:convert';
 import 'package:chopper/chopper.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-part '{{input_filename.snakeCase()}}.freezed.dart';
-part '{{input_filename.snakeCase()}}.g.dart';
+part '../../{{input_filename.snakeCase()}}.freezed.dart';
+part '../../{{input_filename.snakeCase()}}.g.dart';
 
 @freezed
 class {{input_filename.pascalCase()}} with _${{input_filename.pascalCase()}} {
