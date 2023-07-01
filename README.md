@@ -19,12 +19,11 @@ mason make fl_freezed_brick
 # ? Input the class name (may contains spaces): My Get Profile Response
 ```
 
+File `my_get_profile_response.dart` will generated for you.
 
-Then, file `my_get_profile_response.dart` will generated for you.
-
+Contents of generated file:
 
 ```dart
-/// File: my_get_profile_response.dart
 import 'dart:async';
 import 'dart:convert';
 
