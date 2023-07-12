@@ -106,8 +106,7 @@ void run(HookContext context) {
 
   final parsedFields = <OneFieldParsed>[];
   parsedFields.add(
-    OneFieldParsed(
-        fieldName: 'Name', dataType: 'String', varName: 'name', children: []),
+    OneFieldParsed(fieldName: 'Name', dataType: 'String', varName: 'name'),
   );
   final allFieldsString = _generateAllFieldsStringFromList(parsedFields);
 
@@ -125,15 +124,17 @@ void run(HookContext context) {
   ///
   String jsonText = linesInpResponse.join("\n");
   if (jsonText.startsWith('[') && jsonText.endsWith(']')) {
-    jsonText = '{"type_String":"abc",'
-        '"type_int":1,'
-        '"type_double":0.5,'
-        '"type_bool":true,'
-        '"type_Null":null,'
-        '"type_List":[1, 2, 3],'
-        '"type_List2":["a", "b", "c"],'
-        '"type_List3":[true, true, false],'
-        '"type_Map":{"meta":"example"},'
+    jsonText = '{"my_String":"abc",'
+        '"my_int":1,'
+        '"my_double":0.5,'
+        '"my_bool":true,'
+        '"my_Null":null,'
+        '"my_List":[1, 2, 3],'
+        '"my_List2":["a", "b", "c"],'
+        '"my_List3":[true, true, false],'
+        '"my_Map1":{"meta":"example"},'
+        '"my_Map2":{"meta":2},'
+        '"my_Map3":{"meta":true},'
         '"data":$jsonText}';
   }
 
@@ -145,20 +146,20 @@ void run(HookContext context) {
 
   final Map<String, dynamic> decodedJson = jsonDecode(
     jsonText,
-    reviver: (key, value) {
-      print({
-        'KEY': key,
-        'VALUE': value.toString(),
-        'key_type': key.runtimeType,
-        'value_type': value.runtimeType,
-      });
-      return value;
-    },
+    // reviver: (key, value) {
+    //   print({
+    //     'KEY': key,
+    //     'VALUE': value.toString(),
+    //     'key_type': key.runtimeType,
+    //     'value_type': value.runtimeType,
+    //   });
+    //   return value;
+    // },
   );
   final prettyJsonText = getPrettyJSONString(decodedJson);
   print(prettyJsonText);
 
-  final listParsed = _parseMapJson(decodedJson);
+  final listParsed = _parseMapJson('my root response', decodedJson);
   // print(getPrettyJSONString(jsonDecode(jsonEncode(listParsed))));
   print(listParsed.toString());
 
@@ -179,9 +180,15 @@ void run(HookContext context) {
   // print(jsonDecode('null') as Map<String, dynamic>);
 }
 
-List<OneFieldParsed> _parseMapJson(Map<String, dynamic> decodedJson) {
-  final listParsed = <OneFieldParsed>[];
+List<OneKlassParsed> _parseMapJson(
+  String inputKlassName,
+  Map<String, dynamic> decodedJson,
+) {
+  inputKlassName = inputKlassName.pascalCase;
 
+  final klassParsedList = <OneKlassParsed>[];
+
+  final fieldParsedList = <OneFieldParsed>[];
   for (var key in decodedJson.keys) {
     final value = decodedJson[key];
     print({
@@ -198,7 +205,6 @@ List<OneFieldParsed> _parseMapJson(Map<String, dynamic> decodedJson) {
     String resFieldName = "";
     String resDataType = "";
     String resVarName = "";
-    final resChildren = <OneFieldParsed>[];
 
     ///
     if (key.runtimeType.toString() == 'String') {
@@ -207,18 +213,8 @@ List<OneFieldParsed> _parseMapJson(Map<String, dynamic> decodedJson) {
     }
 
     ///
-    if (value.runtimeType.toString().contains('String')) {
-      resDataType = 'String?';
-    } else if (value.runtimeType.toString().contains('int')) {
-      resDataType = 'int?';
-    } else if (value.runtimeType.toString().contains('double')) {
-      resDataType = 'double?';
-    } else if (value.runtimeType.toString().contains('bool')) {
-      resDataType = 'bool?';
-    } else if (value.runtimeType.toString().contains('Null')) {
-      resDataType = 'Object?';
-    } else if (value.runtimeType.toString().contains('List<dynamic>')) {
-      final itemClassName = 'Undeclared${key.pascalCase}Item';
+    if (value.runtimeType.toString().contains('List<dynamic>')) {
+      final itemClassName = 'Undeclared${inputKlassName}${key.pascalCase}Item';
       resDataType = 'List<$itemClassName>?';
       final listDyn = value as List<dynamic>;
       for (var itemDyn in listDyn) {
@@ -228,22 +224,39 @@ List<OneFieldParsed> _parseMapJson(Map<String, dynamic> decodedJson) {
     } else if (value.runtimeType.toString().contains('Map<String, dynamic>')) {
       final childClassName = 'Undeclared${key.pascalCase}Item';
       resDataType = '${childClassName}?';
-      resChildren.addAll(
-        _parseMapJson(value as Map<String, dynamic>),
-      );
+      // resChildren.addAll(
+      //   _parseMapJson(value as Map<String, dynamic>),
+      // );
+    } else if (value.runtimeType.toString().contains('String')) {
+      resDataType = 'String?';
+    } else if (value.runtimeType.toString().contains('int')) {
+      resDataType = 'int?';
+    } else if (value.runtimeType.toString().contains('double')) {
+      resDataType = 'double?';
+    } else if (value.runtimeType.toString().contains('bool')) {
+      resDataType = 'bool?';
+    } else if (value.runtimeType.toString().contains('Null')) {
+      resDataType = 'Object?';
     }
 
-    listParsed.add(
+    fieldParsedList.add(
       OneFieldParsed(
         fieldName: resFieldName,
         dataType: resDataType,
         varName: resVarName,
-        children: resChildren,
       ),
     );
     print('DONE_1');
   }
-  return listParsed;
+
+  klassParsedList.add(
+    OneKlassParsed(
+      klassName: inputKlassName,
+      fieldList: fieldParsedList,
+    ),
+  );
+
+  return klassParsedList;
 }
 
 /// JSON data types
@@ -291,11 +304,11 @@ String? parseFieldName(String line) {
     final withExtraObject = '{${modified}}';
     final decodedJson = jsonDecode(
       withExtraObject,
-      reviver: (key, value) {
-        if (key != null) {
-          print('key=${key.runtimeType}, value=${value.runtimeType}');
-        }
-      },
+      // reviver: (key, value) {
+      //   if (key != null) {
+      //     print('key=${key.runtimeType}, value=${value.runtimeType}');
+      //   }
+      // },
     );
   } catch (e) {
     print({'error': e.toString()});
@@ -410,18 +423,34 @@ List<String> convertUriToFolderNames(String uri) {
   return segmentListFiltered;
 }
 
+class OneKlassParsed {
+  OneKlassParsed({
+    required this.klassName,
+    required this.fieldList,
+  });
+
+  final String klassName;
+  final List<OneFieldParsed> fieldList;
+
+  @override
+  String toString() {
+    return {
+      'klassName': klassName,
+      'fieldList': fieldList.map((e) => e.toString()).toList(),
+    }.toString();
+  }
+}
+
 class OneFieldParsed {
   OneFieldParsed({
     required this.fieldName,
     required this.dataType,
     required this.varName,
-    required this.children,
   });
 
   final String fieldName;
   final String dataType;
   final String varName;
-  final List<OneFieldParsed> children;
 
   @override
   String toString() {
@@ -429,7 +458,6 @@ class OneFieldParsed {
       'fieldName': fieldName,
       'dataType': dataType,
       'varName': varName,
-      'children': children.map((e) => e.toString()).toList(),
     }.toString();
   }
 }
