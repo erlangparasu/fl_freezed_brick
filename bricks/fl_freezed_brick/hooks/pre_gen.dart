@@ -123,9 +123,18 @@ void run(HookContext context) {
   ///
   String jsonText = linesInpResponse.join("\n");
   if (jsonText.startsWith('[') && jsonText.endsWith(']')) {
-    jsonText = '{"items":$jsonText}';
+    jsonText = '{"TypeString":"abc",'
+        '"Typeint":1,'
+        '"Typedouble":0.5,'
+        '"Typebool":true,'
+        '"TypeNull":null,'
+        '"TypeList":[1, 2, 3],'
+        '"TypeList2":["a", "b", "c"],'
+        '"TypeList3":[true, true, false],'
+        '"Type_Map":{"meta":"example"},'
+        '"items":$jsonText}';
   }
-  Map<String, dynamic> decodedJson = jsonDecode(
+  final Map<String, dynamic> decodedJson = jsonDecode(
     jsonText,
     reviver: (key, value) {
       print({
@@ -140,19 +149,47 @@ void run(HookContext context) {
   final prettyJsonText = getPrettyJSONString(decodedJson);
   print(prettyJsonText);
 
+  for (var key in decodedJson.keys) {
+    final value = decodedJson[key];
+    print({
+      'key_type': key.runtimeType,
+      'key': key,
+      'value_type': value.runtimeType,
+      'value': value,
+    });
+    if (value.runtimeType.toString().contains('String')) {
+      //
+    } else if (value.runtimeType.toString().contains('int')) {
+      //
+    } else if (value.runtimeType.toString().contains('double')) {
+      //
+    } else if (value.runtimeType.toString().contains('bool')) {
+      //
+    } else if (value.runtimeType.toString().contains('Null')) {
+      //
+    } else if (value.runtimeType.toString().contains('List<dynamic>')) {
+      //
+    } else if (value.runtimeType.toString().contains('Map<String, dynamic>')) {
+      //
+    }
+    print('DONE_1');
+  }
+
   // parseFieldName('  "document_url": ""  ');
   // parseFieldName('  "updated_by": "muhammad.aziz",  ');
   // parseFieldName('  "deferal_id": null,  ');
 
   final prettyLines = prettyJsonText.split("\n");
   for (var element in prettyLines) {
-    parseFieldName(element);
+    // parseFieldName(element);
   }
-}
 
-String getPrettyJSONString(jsonObject) {
-  var encoder = new JsonEncoder.withIndent("  ");
-  return encoder.convert(jsonObject);
+  // print(jsonDecode('"Hello"') as Map<String, dynamic>);
+  // print(jsonDecode('95') as Map<String, dynamic>);
+  print(jsonDecode('{"status": "ok"}') as Map<String, dynamic>);
+  // print(jsonDecode('["a", "b", "c"]') as Map<String, dynamic>);
+  // print(jsonDecode('true') as Map<String, dynamic>);
+  // print(jsonDecode('null') as Map<String, dynamic>);
 }
 
 /// JSON data types
@@ -162,6 +199,11 @@ String getPrettyJSONString(jsonObject) {
 // an array
 // a boolean
 // null
+
+String getPrettyJSONString(jsonObject) {
+  var encoder = new JsonEncoder.withIndent("  ");
+  return encoder.convert(jsonObject);
+}
 
 String? parseFieldName(String line) {
   /// Example:
