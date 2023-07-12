@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:mason/mason.dart';
 
+/// Created by: Erlang Parasu 2023.
 void run(HookContext context) {
   // Read vars.
   String filename = context.vars['input_filename'];
@@ -105,7 +106,8 @@ void run(HookContext context) {
 
   final parsedFields = <OneFieldParsed>[];
   parsedFields.add(
-    OneFieldParsed(fieldName: 'Name', dataType: 'String', varName: 'name'),
+    OneFieldParsed(
+        fieldName: 'Name', dataType: 'String', varName: 'name', children: []),
   );
   final allFieldsString = _generateAllFieldsStringFromList(parsedFields);
 
@@ -123,16 +125,16 @@ void run(HookContext context) {
   ///
   String jsonText = linesInpResponse.join("\n");
   if (jsonText.startsWith('[') && jsonText.endsWith(']')) {
-    jsonText = '{"TypeString":"abc",'
-        '"Typeint":1,'
-        '"Typedouble":0.5,'
-        '"Typebool":true,'
-        '"TypeNull":null,'
-        '"TypeList":[1, 2, 3],'
-        '"TypeList2":["a", "b", "c"],'
-        '"TypeList3":[true, true, false],'
-        '"Type_Map":{"meta":"example"},'
-        '"items":$jsonText}';
+    jsonText = '{"type_String":"abc",'
+        '"type_int":1,'
+        '"type_double":0.5,'
+        '"type_bool":true,'
+        '"type_Null":null,'
+        '"type_List":[1, 2, 3],'
+        '"type_List2":["a", "b", "c"],'
+        '"type_List3":[true, true, false],'
+        '"type_Map":{"meta":"example"},'
+        '"data":$jsonText}';
   }
 
   if (jsonText.startsWith('{') && jsonText.endsWith('}')) {
@@ -156,31 +158,9 @@ void run(HookContext context) {
   final prettyJsonText = getPrettyJSONString(decodedJson);
   print(prettyJsonText);
 
-  for (var key in decodedJson.keys) {
-    final value = decodedJson[key];
-    print({
-      'key_type': key.runtimeType,
-      'key': key,
-      'value_type': value.runtimeType,
-      'value': value,
-    });
-    if (value.runtimeType.toString().contains('String')) {
-      //
-    } else if (value.runtimeType.toString().contains('int')) {
-      //
-    } else if (value.runtimeType.toString().contains('double')) {
-      //
-    } else if (value.runtimeType.toString().contains('bool')) {
-      //
-    } else if (value.runtimeType.toString().contains('Null')) {
-      //
-    } else if (value.runtimeType.toString().contains('List<dynamic>')) {
-      //
-    } else if (value.runtimeType.toString().contains('Map<String, dynamic>')) {
-      //
-    }
-    print('DONE_1');
-  }
+  final listParsed = _parseMapJson(decodedJson);
+  // print(getPrettyJSONString(jsonDecode(jsonEncode(listParsed))));
+  print(listParsed.toString());
 
   // parseFieldName('  "document_url": ""  ');
   // parseFieldName('  "updated_by": "muhammad.aziz",  ');
@@ -199,13 +179,80 @@ void run(HookContext context) {
   // print(jsonDecode('null') as Map<String, dynamic>);
 }
 
+List<OneFieldParsed> _parseMapJson(Map<String, dynamic> decodedJson) {
+  final listParsed = <OneFieldParsed>[];
+
+  for (var key in decodedJson.keys) {
+    final value = decodedJson[key];
+    print({
+      'key_type': key.runtimeType,
+      'key': key,
+      'value_type': value.runtimeType,
+      'value': value,
+    });
+
+    // required this.fieldName,
+    // required this.dataType,
+    // required this.varName,
+
+    String resFieldName = "";
+    String resDataType = "";
+    String resVarName = "";
+    final resChildren = <OneFieldParsed>[];
+
+    ///
+    if (key.runtimeType.toString() == 'String') {
+      resFieldName = key;
+      resVarName = key.camelCase;
+    }
+
+    ///
+    if (value.runtimeType.toString().contains('String')) {
+      resDataType = 'String?';
+    } else if (value.runtimeType.toString().contains('int')) {
+      resDataType = 'int?';
+    } else if (value.runtimeType.toString().contains('double')) {
+      resDataType = 'double?';
+    } else if (value.runtimeType.toString().contains('bool')) {
+      resDataType = 'bool?';
+    } else if (value.runtimeType.toString().contains('Null')) {
+      resDataType = 'Object?';
+    } else if (value.runtimeType.toString().contains('List<dynamic>')) {
+      final itemClassName = 'Undeclared${key.pascalCase}Item';
+      resDataType = 'List<$itemClassName>?';
+      final listDyn = value as List<dynamic>;
+      for (var itemDyn in listDyn) {
+        // if (value.runtimeType.toString().contains('String')) {}
+        // _parseMapJson(value as Map<String, dynamic>);
+      }
+    } else if (value.runtimeType.toString().contains('Map<String, dynamic>')) {
+      final childClassName = 'Undeclared${key.pascalCase}Item';
+      resDataType = '${childClassName}?';
+      resChildren.addAll(
+        _parseMapJson(value as Map<String, dynamic>),
+      );
+    }
+
+    listParsed.add(
+      OneFieldParsed(
+        fieldName: resFieldName,
+        dataType: resDataType,
+        varName: resVarName,
+        children: resChildren,
+      ),
+    );
+    print('DONE_1');
+  }
+  return listParsed;
+}
+
 /// JSON data types
-// a string
-// a number
-// an object (JSON object)
-// an array
-// a boolean
-// null
+// - a string
+// - a number
+// - an object (JSON object)
+// - an array
+// - a boolean
+// - null
 
 String getPrettyJSONString(jsonObject) {
   var encoder = new JsonEncoder.withIndent("  ");
@@ -364,15 +411,27 @@ List<String> convertUriToFolderNames(String uri) {
 }
 
 class OneFieldParsed {
-  const OneFieldParsed({
+  OneFieldParsed({
     required this.fieldName,
     required this.dataType,
     required this.varName,
+    required this.children,
   });
 
   final String fieldName;
   final String dataType;
   final String varName;
+  final List<OneFieldParsed> children;
+
+  @override
+  String toString() {
+    return {
+      'fieldName': fieldName,
+      'dataType': dataType,
+      'varName': varName,
+      'children': children.map((e) => e.toString()).toList(),
+    }.toString();
+  }
 }
 
 String _generateAllFieldsStringFromList(List<OneFieldParsed> inputItems) {
