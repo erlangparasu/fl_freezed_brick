@@ -121,6 +121,14 @@ void run(HookContext context) {
     ),
   );
 
+  /// JSON data types
+  // - a string
+  // - a number
+  // - an object (JSON object)
+  // - an array
+  // - a boolean
+  // - null
+
   ///
   String jsonText = linesInpResponse.join("\n");
   if (jsonText.startsWith('[') && jsonText.endsWith(']')) {
@@ -129,12 +137,15 @@ void run(HookContext context) {
         '"my_double":0.5,'
         '"my_bool":true,'
         '"my_Null":null,'
-        '"my_List":[1, 2, 3],'
-        '"my_List2":["a", "b", "c"],'
-        '"my_List3":[true, true, false],'
         '"my_Map1":{"meta":"example"},'
         '"my_Map2":{"meta":2},'
         '"my_Map3":{"meta":true},'
+        '"my_List_String":["a", "b", "c"],'
+        '"my_List_int":[1, 2, 3],'
+        '"my_List_double":[0.1, 0.2, 0.3],'
+        '"my_List_bool":[true, true, false],'
+        '"my_List_Null":[null, null, null],'
+        '"my_List_Map":[{"id":1,"name":"One"}, {"id":2,"name":"Two"}],'
         '"data":$jsonText}';
   }
 
@@ -167,27 +178,32 @@ void run(HookContext context) {
   print(klassParsedList.toString());
   print('---/klassParsedList---');
 
-  //'''
-  //---klassParsedList---
-  //[{klassName: UndeclaredMyMap1Item, fieldList: [{fieldName: meta, dataType:
-  //String?, varName: meta}]}, {klassName: UndeclaredMyMap2Item, fieldList: [{fi
-  //eldName: meta, dataType: int?, varName: meta}]}, {klassName: UndeclaredMyMap
-  //3Item, fieldList: [{fieldName: meta, dataType: bool?, varName: meta}]}, {kla
-  //ssName: TheRootResponse, fieldList: [{fieldName: my_String, dataType: String
-  //?, varName: myString}, {fieldName: my_int, dataType: int?, varName: myInt},
-  //{fieldName: my_double, dataType: double?, varName: myDouble}, {fieldName: my
-  //_bool, dataType: bool?, varName: myBool}, {fieldName: my_Null, dataType: Obj
-  //ect?, varName: myNull}, {fieldName: my_List, dataType: List<UndeclaredTheRoo
-  //tResponseMyListItem>?, varName: myList}, {fieldName: my_List2, dataType: Lis
-  //t<UndeclaredTheRootResponseMyList2Item>?, varName: myList2}, {fieldName: my_
-  //List3, dataType: List<UndeclaredTheRootResponseMyList3Item>?, varName: myLis
-  //t3}, {fieldName: my_Map1, dataType: UndeclaredMyMap1Item?, varName: myMap1},
-  // {fieldName: my_Map2, dataType: UndeclaredMyMap2Item?, varName: myMap2}, {fi
-  //eldName: my_Map3, dataType: UndeclaredMyMap3Item?, varName: myMap3}, {fieldN
-  //ame: data, dataType: List<UndeclaredTheRootResponseDataItem>?, varName: data
-  //}]}]
-  //---/klassParsedList---
-  //''';
+  /// ---klassParsedList---
+  /// [{klassName: TheRootResponseMyMap1, fieldList: [{fieldName: meta,
+  /// dataType: String?, varName: meta}]}, {klassName: TheRootResponseMyMap2,
+  /// fieldList: [{fieldName: meta, dataType: int?, varName: meta}]}, {
+  /// klassName: TheRootResponseMyMap3, fieldList: [{fieldName: meta,
+  /// dataType: bool?, varName: meta}]}, {klassName: TheRootResponseMyListMap,
+  /// fieldList: [{fieldName: id, dataType: int?, varName: id}, {
+  /// fieldName: name, dataType: String?, varName: name}]}, {klassName:
+  /// TheRootResponseMyListMap, fieldList: [{fieldName: id, dataType: int?,
+  /// varName: id}, {fieldName: name, dataType: String?, varName: name}]},
+  /// {klassName: TheRootResponse, fieldList: [{fieldName: my_String,
+  /// dataType: String?, varName: myString}, {fieldName: my_int, dataType:
+  /// int?, varName: myInt}, {fieldName: my_double, dataType: double?, varName:
+  /// myDouble}, {fieldName: my_bool, dataType: bool?, varName: myBool},
+  /// {fieldName: my_Null, dataType: Object?, varName: myNull}, {fieldName:
+  /// my_Map1, dataType: TheRootResponseMyMap1?, varName: myMap1}, {fieldName:
+  /// my_Map2, dataType: TheRootResponseMyMap2?, varName: myMap2}, {fieldName:
+  /// my_Map3, dataType: TheRootResponseMyMap3?, varName: myMap3}, {fieldName:
+  /// my_List_String, dataType: List<String>?, varName: myListString},
+  /// {fieldName: my_List_int, dataType: List<int>?, varName: myListInt},
+  /// {fieldName: my_List_double, dataType: List<double>?, varName:
+  /// myListDouble}, {fieldName: my_List_bool, dataType: List<bool>?,
+  /// varName: myListBool}, {fieldName: my_List_Null, dataType: List<Object?>?,
+  /// varName: myListNull}, {fieldName: my_List_Map, dataType:
+  /// List<TheRootResponseMyListMap>?, varName: myListMap}]}]
+  /// ---/klassParsedList---
 
   // parseFieldName('  "document_url": ""  ');
   // parseFieldName('  "updated_by": "muhammad.aziz",  ');
@@ -240,13 +256,36 @@ List<OneKlassParsed> _parseKlassListFromJsonMap(
 
     ///
     if (value.runtimeType.toString().contains('List<dynamic>')) {
-      final itemClassName = '${inputKlassName}${key.pascalCase}Item';
+      String itemClassName = '${inputKlassName}${key.pascalCase}Item';
+      () {
+        final listDyn = value as List<dynamic>;
+        for (var itemDyn in listDyn) {
+          if (itemDyn.runtimeType.toString().contains('Map<String, dynamic>')) {
+            final childKlassNameForList = '${inputKlassName}${key.pascalCase}';
+            itemClassName = childKlassNameForList;
+
+            klassParsedList.addAll(
+              _parseKlassListFromJsonMap(
+                childKlassNameForList,
+                itemDyn as Map<String, dynamic>,
+              ),
+            );
+          } else if (itemDyn.runtimeType.toString().contains('String')) {
+            itemClassName = 'String';
+          } else if (itemDyn.runtimeType.toString().contains('int')) {
+            itemClassName = 'int';
+          } else if (itemDyn.runtimeType.toString().contains('double')) {
+            itemClassName = 'double';
+          } else if (itemDyn.runtimeType.toString().contains('bool')) {
+            itemClassName = 'bool';
+          } else if (itemDyn.runtimeType.toString().contains('Null')) {
+            itemClassName = 'Object?';
+          } else {
+            itemClassName = 'dynamic';
+          }
+        }
+      }();
       resDataType = 'List<$itemClassName>?';
-      final listDyn = value as List<dynamic>;
-      for (var itemDyn in listDyn) {
-        // if (value.runtimeType.toString().contains('String')) {}
-        // _parseMapJson(value as Map<String, dynamic>);
-      }
     } else if (value.runtimeType.toString().contains('Map<String, dynamic>')) {
       final childClassName = '${inputKlassName}${key.pascalCase}';
       resDataType = '${childClassName}?';
@@ -267,6 +306,8 @@ List<OneKlassParsed> _parseKlassListFromJsonMap(
       resDataType = 'bool?';
     } else if (value.runtimeType.toString().contains('Null')) {
       resDataType = 'Object?';
+    } else {
+      resDataType = 'dynamic';
     }
 
     fieldParsedList.add(
