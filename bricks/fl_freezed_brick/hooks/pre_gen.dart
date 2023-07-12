@@ -134,6 +134,13 @@ void run(HookContext context) {
         '"Type_Map":{"meta":"example"},'
         '"items":$jsonText}';
   }
+
+  if (jsonText.startsWith('{') && jsonText.endsWith('}')) {
+    // ok.
+  } else {
+    throw Exception('err_invalid_json_content');
+  }
+
   final Map<String, dynamic> decodedJson = jsonDecode(
     jsonText,
     reviver: (key, value) {
