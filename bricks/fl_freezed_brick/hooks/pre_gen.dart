@@ -240,7 +240,7 @@ List<OneKlassParsed> _parseKlassListFromJsonMap(
 
     ///
     if (value.runtimeType.toString().contains('List<dynamic>')) {
-      final itemClassName = 'Undeclared${inputKlassName}${key.pascalCase}Item';
+      final itemClassName = '${inputKlassName}${key.pascalCase}Item';
       resDataType = 'List<$itemClassName>?';
       final listDyn = value as List<dynamic>;
       for (var itemDyn in listDyn) {
@@ -248,7 +248,7 @@ List<OneKlassParsed> _parseKlassListFromJsonMap(
         // _parseMapJson(value as Map<String, dynamic>);
       }
     } else if (value.runtimeType.toString().contains('Map<String, dynamic>')) {
-      final childClassName = 'Undeclared${key.pascalCase}Item';
+      final childClassName = '${inputKlassName}${key.pascalCase}';
       resDataType = '${childClassName}?';
 
       klassParsedList.addAll(
