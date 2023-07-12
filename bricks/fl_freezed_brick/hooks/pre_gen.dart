@@ -159,9 +159,35 @@ void run(HookContext context) {
   final prettyJsonText = getPrettyJSONString(decodedJson);
   print(prettyJsonText);
 
-  final listParsed = _parseMapJson('my root response', decodedJson);
-  // print(getPrettyJSONString(jsonDecode(jsonEncode(listParsed))));
-  print(listParsed.toString());
+  final klassParsedList = _parseKlassListFromJsonMap(
+    'the root response',
+    decodedJson,
+  );
+  print('---klassParsedList---');
+  print(klassParsedList.toString());
+  print('---/klassParsedList---');
+
+  //'''
+  //---klassParsedList---
+  //[{klassName: UndeclaredMyMap1Item, fieldList: [{fieldName: meta, dataType:
+  //String?, varName: meta}]}, {klassName: UndeclaredMyMap2Item, fieldList: [{fi
+  //eldName: meta, dataType: int?, varName: meta}]}, {klassName: UndeclaredMyMap
+  //3Item, fieldList: [{fieldName: meta, dataType: bool?, varName: meta}]}, {kla
+  //ssName: TheRootResponse, fieldList: [{fieldName: my_String, dataType: String
+  //?, varName: myString}, {fieldName: my_int, dataType: int?, varName: myInt},
+  //{fieldName: my_double, dataType: double?, varName: myDouble}, {fieldName: my
+  //_bool, dataType: bool?, varName: myBool}, {fieldName: my_Null, dataType: Obj
+  //ect?, varName: myNull}, {fieldName: my_List, dataType: List<UndeclaredTheRoo
+  //tResponseMyListItem>?, varName: myList}, {fieldName: my_List2, dataType: Lis
+  //t<UndeclaredTheRootResponseMyList2Item>?, varName: myList2}, {fieldName: my_
+  //List3, dataType: List<UndeclaredTheRootResponseMyList3Item>?, varName: myLis
+  //t3}, {fieldName: my_Map1, dataType: UndeclaredMyMap1Item?, varName: myMap1},
+  // {fieldName: my_Map2, dataType: UndeclaredMyMap2Item?, varName: myMap2}, {fi
+  //eldName: my_Map3, dataType: UndeclaredMyMap3Item?, varName: myMap3}, {fieldN
+  //ame: data, dataType: List<UndeclaredTheRootResponseDataItem>?, varName: data
+  //}]}]
+  //---/klassParsedList---
+  //''';
 
   // parseFieldName('  "document_url": ""  ');
   // parseFieldName('  "updated_by": "muhammad.aziz",  ');
@@ -180,7 +206,7 @@ void run(HookContext context) {
   // print(jsonDecode('null') as Map<String, dynamic>);
 }
 
-List<OneKlassParsed> _parseMapJson(
+List<OneKlassParsed> _parseKlassListFromJsonMap(
   String inputKlassName,
   Map<String, dynamic> decodedJson,
 ) {
@@ -224,9 +250,13 @@ List<OneKlassParsed> _parseMapJson(
     } else if (value.runtimeType.toString().contains('Map<String, dynamic>')) {
       final childClassName = 'Undeclared${key.pascalCase}Item';
       resDataType = '${childClassName}?';
-      // resChildren.addAll(
-      //   _parseMapJson(value as Map<String, dynamic>),
-      // );
+
+      klassParsedList.addAll(
+        _parseKlassListFromJsonMap(
+          childClassName,
+          value as Map<String, dynamic>,
+        ),
+      );
     } else if (value.runtimeType.toString().contains('String')) {
       resDataType = 'String?';
     } else if (value.runtimeType.toString().contains('int')) {
