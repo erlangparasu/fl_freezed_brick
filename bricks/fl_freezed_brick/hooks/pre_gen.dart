@@ -14,12 +14,12 @@ void run(HookContext context) {
   filename = '_api_Dashboard_getScheduleInspection.md';
 
   // Use the `Logger` instance.
-  context.logger.info('Generating file: $filename');
+  // context.logger.info('Generating file: $filename');
 
   // filename.camelCase;
 
   // Update vars.
-  context.vars['current_year'] = DateTime.now().year;
+  // context.vars['current_year'] = DateTime.now().year;
 
   final theFilename = filename;
   var theFile = File(theFilename);
@@ -161,9 +161,9 @@ void run(HookContext context) {
     decodedJson,
   );
 
-  print('---parsedKlassList---');
-  print(parsedKlassList.toString());
-  print('---/parsedKlassList---');
+  // print('---parsedKlassList---');
+  // print(parsedKlassList.toString());
+  // print('---/parsedKlassList---');
 
   /// ---parsedKlassList---
   /// [{klassName: TheRootResponseMyMap1, fieldList: [{fieldName: meta,
@@ -201,21 +201,27 @@ void run(HookContext context) {
     }
   }
 
-  print('---filteredParsedKlassList---');
-  print(filteredParsedKlassList.toString());
-  print('---/filteredParsedKlassList---');
+  print('<filteredParsedKlassList>');
+  print(
+    generatePrettyJsonString(
+      jsonDecode(
+        filteredParsedKlassList.toString(),
+      ),
+    ),
+  );
+  print('</filteredParsedKlassList>');
 
-  print(parsedKlassList.length);
-  print(filteredParsedKlassList.length);
+  // print(parsedKlassList.length);
+  // print(filteredParsedKlassList.length);
 
   print(filteredParsedKlassList.map((e) => e.klassName).toList());
 
-  // print(jsonDecode('"Hello"') as Map<String, dynamic>);
-  // print(jsonDecode('95') as Map<String, dynamic>);
-  print(jsonDecode('{"status": "ok"}') as Map<String, dynamic>);
-  // print(jsonDecode('["a", "b", "c"]') as Map<String, dynamic>);
-  // print(jsonDecode('true') as Map<String, dynamic>);
-  // print(jsonDecode('null') as Map<String, dynamic>);
+  // // print(jsonDecode('"Hello"') as Map<String, dynamic>);
+  // // print(jsonDecode('95') as Map<String, dynamic>);
+  // print(jsonDecode('{"status": "ok"}') as Map<String, dynamic>);
+  // // print(jsonDecode('["a", "b", "c"]') as Map<String, dynamic>);
+  // // print(jsonDecode('true') as Map<String, dynamic>);
+  // // print(jsonDecode('null') as Map<String, dynamic>);
 
   ///
 
@@ -234,6 +240,10 @@ void run(HookContext context) {
     freezedAllString += freezedString;
   }
 
+  context.logger.info(
+    'Generating file: '
+    'lib/models/${folderNames.join('/')}/${dartFilename}',
+  );
   final newFile = File('lib/models/${folderNames.join('/')}/${dartFilename}');
   newFile.createSync(recursive: true);
   newFile.writeAsStringSync(
