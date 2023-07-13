@@ -1,3 +1,4 @@
 /.mason
 /_*.md
 /fl_freezed_brick.log
+/lib/models/*
