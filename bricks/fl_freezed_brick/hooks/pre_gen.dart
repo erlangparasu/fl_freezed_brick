@@ -106,23 +106,6 @@ void run(HookContext context) {
   final folderNames = convertUriToFolderNames(inputUri);
   print({'folderNames': folderNames});
 
-  final parsedFields = <OneFieldParsed>[];
-  parsedFields.add(
-    OneFieldParsed(fieldName: 'Name', dataType: 'String', varName: 'name'),
-  );
-  final allFieldsString = _generateAllFieldsStringFromList(parsedFields);
-
-  final newFile =
-      File('lib/models/${folderNames.join('/')}/${getDartFilename}');
-  newFile.createSync(recursive: true);
-  newFile.writeAsStringSync(
-    _generateDartFileContent(
-      filenameWithoutDart: getDartFilename.replaceAll('.dart', ''),
-      className: getDartClassname,
-      allFieldsString: allFieldsString,
-    ),
-  );
-
   /// JSON data types
   // - a string
   // - a number
@@ -241,6 +224,25 @@ void run(HookContext context) {
   // print(jsonDecode('["a", "b", "c"]') as Map<String, dynamic>);
   // print(jsonDecode('true') as Map<String, dynamic>);
   // print(jsonDecode('null') as Map<String, dynamic>);
+
+  ///
+
+  final parsedFields = <OneFieldParsed>[];
+  parsedFields.addAll(
+    filteredKlassParsedList.first.fieldList,
+  );
+  final allFieldsString = _generateAllFieldsStringFromList(parsedFields);
+
+  final newFile =
+      File('lib/models/${folderNames.join('/')}/${getDartFilename}');
+  newFile.createSync(recursive: true);
+  newFile.writeAsStringSync(
+    _generateDartFileContent(
+      filenameWithoutDart: getDartFilename.replaceAll('.dart', ''),
+      className: getDartClassname,
+      allFieldsString: allFieldsString,
+    ),
+  );
 }
 
 /// JSON data types
@@ -250,75 +252,6 @@ void run(HookContext context) {
 // - an array
 // - a boolean
 // - null
-
-String? parseFieldName(String line) {
-  /// Example:
-  // "document_url": "",
-
-  // Remove empty spaces.
-  String modified = line.trim();
-
-  // Remove trailing comma.
-  final indexCOmma = modified.lastIndexOf(',');
-  final cList = modified.split('');
-  final modCharList = <String>[];
-  for (var i = 0; i < cList.length; i++) {
-    if (i != indexCOmma) {
-      modCharList.add(cList[i]);
-    }
-  }
-  modified = modCharList.join('');
-  print({'modified': modified});
-
-  if (modified.contains('": [')) {
-    // array
-    return null;
-  }
-  if (modified.contains('": {')) {
-    // object
-    return null;
-  }
-
-  try {
-    final withExtraObject = '{${modified}}';
-    final decodedJson = jsonDecode(
-      withExtraObject,
-      // reviver: (key, value) {
-      //   if (key != null) {
-      //     print('key=${key.runtimeType}, value=${value.runtimeType}');
-      //   }
-      // },
-    );
-  } catch (e) {
-    print({'error': e.toString()});
-  }
-
-  return null;
-}
-
-bool isJsonFieldString(String line) {
-  return false;
-}
-
-bool isJsonFieldNumber(String line) {
-  return false;
-}
-
-bool isJsonFieldObject(String line) {
-  return false;
-}
-
-bool isJsonFieldArray(String line) {
-  return false;
-}
-
-bool isJsonFieldBoolean(String line) {
-  return false;
-}
-
-bool isJsonFieldNull(String line) {
-  return false;
-}
 
 ///
 
@@ -406,7 +339,7 @@ String _generateAllFieldsStringFromList(List<OneFieldParsed> inputItems) {
   final fieldList = <String>[];
   for (var item in inputItems) {
     String aLine =
-        "    @JsonKey(name: '${item.fieldName}') ${item.dataType}? ${item.varName},";
+        "    @JsonKey(name: '${item.fieldName}') ${item.dataType} ${item.varName},";
     fieldList.add(aLine);
   }
   return fieldList.join("\n");
@@ -433,8 +366,8 @@ part '${filenameWithoutDart}.g.dart';
 class ${className} with _\$${className} {
   @JsonSerializable(explicitToJson: true)
   const factory ${className}({
-    // @JsonKey(name: 'the_field_name') String? theFieldName,
 ${allFieldsString}
+    // @JsonKey(name: 'the_field_name') String? theFieldName,
   }) = _${className};
 
   factory ${className}.fromJson(
