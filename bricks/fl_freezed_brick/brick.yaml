@@ -28,4 +28,4 @@ vars:
   input_filename:
     type: string
     description: Class Name
-    prompt: "Input the class name (may contains spaces):"
+    prompt: "Input the filename:"
