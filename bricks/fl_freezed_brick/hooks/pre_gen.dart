@@ -10,8 +10,16 @@ void run(HookContext context) {
   // Read vars.
   String filename = context.vars['input_filename'];
 
-  // Debug
-  filename = '_api_Dashboard_getScheduleInspection.md';
+  final File fileObj = File(filename);
+  if (!fileObj.existsSync()) {
+    context.logger.err('File not found: $filename');
+    return;
+  }
+
+  // fileObj.absolute;
+
+  // // Debug
+  // filename = '_api_Dashboard_getScheduleInspection.md';
 
   // Use the `Logger` instance.
   // context.logger.info('Generating file: $filename');
@@ -21,6 +29,10 @@ void run(HookContext context) {
   // Update vars.
   // context.vars['current_year'] = DateTime.now().year;
 
+  generateOneFile(filename, context);
+}
+
+void generateOneFile(String filename, HookContext context) {
   final theFilename = filename;
   var theFile = File(theFilename);
   final lines = theFile.readAsLinesSync();
