@@ -174,6 +174,7 @@ void run(HookContext context) {
     'the root response',
     decodedJson,
   );
+
   print('---klassParsedList---');
   print(klassParsedList.toString());
   print('---/klassParsedList---');
@@ -204,6 +205,24 @@ void run(HookContext context) {
   /// varName: myListNull}, {fieldName: my_List_Map, dataType:
   /// List<TheRootResponseMyListMap>?, varName: myListMap}]}]
   /// ---/klassParsedList---
+
+  final filteredKlassParsedList = <OneKlassParsed>[];
+  final klassAlreadyList = <String>[];
+  for (var element in klassParsedList) {
+    if (!klassAlreadyList.contains(element.klassName)) {
+      filteredKlassParsedList.add(element);
+      klassAlreadyList.add(element.klassName);
+    }
+  }
+
+  print('---filteredKlassParsedList---');
+  print(filteredKlassParsedList.toString());
+  print('---/filteredKlassParsedList---');
+
+  print(klassParsedList.length);
+  print(filteredKlassParsedList.length);
+
+  print(filteredKlassParsedList.map((e) => e.klassName).toList());
 
   // parseFieldName('  "document_url": ""  ');
   // parseFieldName('  "updated_by": "muhammad.aziz",  ');
@@ -256,12 +275,13 @@ List<OneKlassParsed> _parseKlassListFromJsonMap(
 
     ///
     if (value.runtimeType.toString().contains('List<dynamic>')) {
-      String itemClassName = '${inputKlassName}${key.pascalCase}Item';
+      String itemClassName = '';
       () {
         final listDyn = value as List<dynamic>;
         for (var itemDyn in listDyn) {
           if (itemDyn.runtimeType.toString().contains('Map<String, dynamic>')) {
-            final childKlassNameForList = '${inputKlassName}${key.pascalCase}';
+            final childKlassNameForList =
+                '${inputKlassName}${key.pascalCase}Item';
             itemClassName = childKlassNameForList;
 
             klassParsedList.addAll(
@@ -505,10 +525,10 @@ class OneKlassParsed {
 
   @override
   String toString() {
-    return {
+    return getPrettyJSONString({
       'klassName': klassName,
-      'fieldList': fieldList.map((e) => e.toString()).toList(),
-    }.toString();
+      'fieldList': fieldList.map((e) => jsonDecode(e.toString())).toList(),
+    }).toString();
   }
 }
 
@@ -525,11 +545,11 @@ class OneFieldParsed {
 
   @override
   String toString() {
-    return {
+    return getPrettyJSONString({
       'fieldName': fieldName,
       'dataType': dataType,
       'varName': varName,
-    }.toString();
+    }).toString();
   }
 }
 
