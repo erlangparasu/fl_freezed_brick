@@ -96,13 +96,14 @@ void run(HookContext context) {
   print({'inputUri': inputUri});
 
   /// Response filename.
-  String getDartFilename = convertUriToDartFilename(inputUri);
-  print({'getDartFilename': getDartFilename});
+  String dartFilename = convertUriToDartFilename(inputUri);
+  print({'dartFilename': dartFilename});
 
-  /// Response classname.
-  String getDartClassname = convertUriToDartClassname(inputUri);
-  print({'getDartClassname': getDartClassname});
+  /// Response klassname.
+  String dartKlassName = convertUriToDartKlassName(inputUri);
+  print({'dartKlassName': dartKlassName});
 
+  /// Folder names.
   final folderNames = convertUriToFolderNames(inputUri);
   print({'folderNames': folderNames});
 
@@ -152,19 +153,19 @@ void run(HookContext context) {
     //   return value;
     // },
   );
-  final prettyJsonText = getPrettyJSONString(decodedJson);
+  final prettyJsonText = generatePrettyJsonString(decodedJson);
   print(prettyJsonText);
 
-  final klassParsedList = parseKlassListFromJsonMap(
+  final parsedKlassList = parseKlassListFromJsonMap(
     'the root response',
     decodedJson,
   );
 
-  print('---klassParsedList---');
-  print(klassParsedList.toString());
-  print('---/klassParsedList---');
+  print('---parsedKlassList---');
+  print(parsedKlassList.toString());
+  print('---/parsedKlassList---');
 
-  /// ---klassParsedList---
+  /// ---parsedKlassList---
   /// [{klassName: TheRootResponseMyMap1, fieldList: [{fieldName: meta,
   /// dataType: String?, varName: meta}]}, {klassName: TheRootResponseMyMap2,
   /// fieldList: [{fieldName: meta, dataType: int?, varName: meta}]}, {
@@ -189,34 +190,25 @@ void run(HookContext context) {
   /// varName: myListBool}, {fieldName: my_List_Null, dataType: List<Object?>?,
   /// varName: myListNull}, {fieldName: my_List_Map, dataType:
   /// List<TheRootResponseMyListMap>?, varName: myListMap}]}]
-  /// ---/klassParsedList---
+  /// ---/parsedKlassList---
 
-  final filteredKlassParsedList = <OneKlassParsed>[];
-  final klassAlreadyList = <String>[];
-  for (var element in klassParsedList) {
-    if (!klassAlreadyList.contains(element.klassName)) {
-      filteredKlassParsedList.add(element);
-      klassAlreadyList.add(element.klassName);
+  final filteredParsedKlassList = <OneParsedKlass>[];
+  final uniqueKlassList = <String>[];
+  for (var element in parsedKlassList) {
+    if (!uniqueKlassList.contains(element.klassName)) {
+      filteredParsedKlassList.add(element);
+      uniqueKlassList.add(element.klassName);
     }
   }
 
-  print('---filteredKlassParsedList---');
-  print(filteredKlassParsedList.toString());
-  print('---/filteredKlassParsedList---');
+  print('---filteredParsedKlassList---');
+  print(filteredParsedKlassList.toString());
+  print('---/filteredParsedKlassList---');
 
-  print(klassParsedList.length);
-  print(filteredKlassParsedList.length);
+  print(parsedKlassList.length);
+  print(filteredParsedKlassList.length);
 
-  print(filteredKlassParsedList.map((e) => e.klassName).toList());
-
-  // parseFieldName('  "document_url": ""  ');
-  // parseFieldName('  "updated_by": "muhammad.aziz",  ');
-  // parseFieldName('  "deferal_id": null,  ');
-
-  final prettyLines = prettyJsonText.split("\n");
-  for (var element in prettyLines) {
-    // parseFieldName(element);
-  }
+  print(filteredParsedKlassList.map((e) => e.klassName).toList());
 
   // print(jsonDecode('"Hello"') as Map<String, dynamic>);
   // print(jsonDecode('95') as Map<String, dynamic>);
@@ -227,20 +219,28 @@ void run(HookContext context) {
 
   ///
 
-  final parsedFields = <OneFieldParsed>[];
-  parsedFields.addAll(
-    filteredKlassParsedList.first.fieldList,
-  );
-  final allFieldsString = _generateAllFieldsStringFromList(parsedFields);
+  String freezedAllString = '';
+  for (var parsedKlassItem in filteredParsedKlassList) {
+    final klassName = parsedKlassItem.klassName;
+    final fieldsString = generateAllFieldsStringFromList(
+      parsedKlassItem.fieldList,
+    );
 
-  final newFile =
-      File('lib/models/${folderNames.join('/')}/${getDartFilename}');
+    final freezedString = generateFreezedAnnotationContent(
+      klassName: klassName,
+      fieldsString: fieldsString,
+    );
+
+    freezedAllString += freezedString;
+  }
+
+  final newFile = File('lib/models/${folderNames.join('/')}/${dartFilename}');
   newFile.createSync(recursive: true);
   newFile.writeAsStringSync(
-    _generateDartFileContent(
-      filenameWithoutDart: getDartFilename.replaceAll('.dart', ''),
-      className: getDartClassname,
-      allFieldsString: allFieldsString,
+    generateDartFileContent(
+      filenameWithoutExtension: dartFilename.replaceAll('.dart', ''),
+      klassName: dartKlassName,
+      freezedTextList: freezedAllString,
     ),
   );
 }
@@ -282,7 +282,7 @@ String convertUriToDartFilename(String uri) {
   // "Api_Dashboard_GetScheduleInspection_Response.dart"
 }
 
-String convertUriToDartClassname(String uri) {
+String convertUriToDartKlassName(String uri) {
   if (!uri.startsWith('/')) {
     throw Exception('Err: URI must start with a slash "/".');
   }
@@ -335,20 +335,10 @@ List<String> convertUriToFolderNames(String uri) {
   return segmentListFiltered;
 }
 
-String _generateAllFieldsStringFromList(List<OneFieldParsed> inputItems) {
-  final fieldList = <String>[];
-  for (var item in inputItems) {
-    String aLine =
-        "    @JsonKey(name: '${item.fieldName}') ${item.dataType} ${item.varName},";
-    fieldList.add(aLine);
-  }
-  return fieldList.join("\n");
-}
-
-String _generateDartFileContent({
-  required String filenameWithoutDart,
-  required String className,
-  required String allFieldsString,
+String generateDartFileContent({
+  required String filenameWithoutExtension,
+  required String klassName,
+  required String freezedTextList,
 }) =>
     '''// ignore_for_file: non_constant_identifier_names, file_names, camel_case_types
 
@@ -358,31 +348,49 @@ import 'dart:convert';
 import 'package:chopper/chopper.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-part '${filenameWithoutDart}.freezed.dart';
-part '${filenameWithoutDart}.g.dart';
+part '${filenameWithoutExtension}.freezed.dart';
+part '${filenameWithoutExtension}.g.dart';
 
 /// Created by: Erlang Parasu 2023.
-@freezed
-class ${className} with _\$${className} {
-  @JsonSerializable(explicitToJson: true)
-  const factory ${className}({
-${allFieldsString}
-    // @JsonKey(name: 'the_field_name') String? theFieldName,
-  }) = _${className};
+${freezedTextList}
 
-  factory ${className}.fromJson(
-    Map<String, dynamic> json,
-  ) =>
-      _\$${className}FromJson(json);
-}
-
-FutureOr<Response<dynamic>> converterFor${className}(
+FutureOr<Response<dynamic>> converterFor${klassName}(
   Response<dynamic> response,
 ) {
   final bodyString = response.bodyString;
   final jsonMap = jsonDecode(bodyString) as Map<String, dynamic>;
-  final model = ${className}.fromJson(jsonMap);
+  final model = ${klassName}.fromJson(jsonMap);
   return response.copyWith(body: model);
 }
 
 ''';
+
+String generateFreezedAnnotationContent({
+  required String klassName,
+  required String fieldsString,
+}) =>
+    '''
+@freezed
+class ${klassName} with _\$${klassName} {
+  @JsonSerializable(explicitToJson: true)
+  const factory ${klassName}({
+${fieldsString}
+  }) = _${klassName};
+
+  factory ${klassName}.fromJson(
+    Map<String, dynamic> json,
+  ) =>
+      _\$${klassName}FromJson(json);
+}
+
+''';
+
+String generateAllFieldsStringFromList(List<OneParsedField> parsedFieldList) {
+  final fieldLines = <String>[];
+  for (var item in parsedFieldList) {
+    String aLine =
+        "    @JsonKey(name: '${item.fieldName}') ${item.dataType} ${item.varName},";
+    fieldLines.add(aLine);
+  }
+  return fieldLines.join("\n");
+}

@@ -3,15 +3,15 @@ import 'dart:convert';
 import 'package:mason/mason.dart';
 
 /// Created by: Erlang Parasu 2023.
-List<OneKlassParsed> parseKlassListFromJsonMap(
+List<OneParsedKlass> parseKlassListFromJsonMap(
   String inputKlassName,
   Map<String, dynamic> decodedJson,
 ) {
   inputKlassName = inputKlassName.pascalCase;
 
-  final klassParsedList = <OneKlassParsed>[];
+  final parsedKlassList = <OneParsedKlass>[];
+  final parsedFieldList = <OneParsedField>[];
 
-  final fieldParsedList = <OneFieldParsed>[];
   for (var key in decodedJson.keys) {
     final value = decodedJson[key];
     print({
@@ -25,9 +25,9 @@ List<OneKlassParsed> parseKlassListFromJsonMap(
     // required this.dataType,
     // required this.varName,
 
-    String resFieldName = "";
-    String resDataType = "";
-    String resVarName = "";
+    String resFieldName = '';
+    String resDataType = '';
+    String resVarName = '';
 
     ///
     if (key.runtimeType.toString() == 'String') {
@@ -46,7 +46,7 @@ List<OneKlassParsed> parseKlassListFromJsonMap(
                 '${inputKlassName}${key.pascalCase}Item';
             itemClassName = childKlassNameForList;
 
-            klassParsedList.addAll(
+            parsedKlassList.addAll(
               parseKlassListFromJsonMap(
                 childKlassNameForList,
                 itemDyn as Map<String, dynamic>,
@@ -72,7 +72,7 @@ List<OneKlassParsed> parseKlassListFromJsonMap(
       final childClassName = '${inputKlassName}${key.pascalCase}';
       resDataType = '${childClassName}?';
 
-      klassParsedList.addAll(
+      parsedKlassList.addAll(
         parseKlassListFromJsonMap(
           childClassName,
           value as Map<String, dynamic>,
@@ -92,51 +92,52 @@ List<OneKlassParsed> parseKlassListFromJsonMap(
       resDataType = 'dynamic';
     }
 
-    fieldParsedList.add(
-      OneFieldParsed(
+    parsedFieldList.add(
+      OneParsedField(
         fieldName: resFieldName,
         dataType: resDataType,
         varName: resVarName,
       ),
     );
-    print('DONE_1');
+
+    // print('DONE_1');
   }
 
-  klassParsedList.add(
-    OneKlassParsed(
+  parsedKlassList.add(
+    OneParsedKlass(
       klassName: inputKlassName,
-      fieldList: fieldParsedList,
+      fieldList: parsedFieldList,
     ),
   );
 
-  return klassParsedList;
+  return parsedKlassList;
 }
 
-class OneKlassParsed {
-  OneKlassParsed({
+String generatePrettyJsonString(jsonObject) {
+  var encoder = new JsonEncoder.withIndent("  ");
+  return encoder.convert(jsonObject);
+}
+
+class OneParsedKlass {
+  OneParsedKlass({
     required this.klassName,
     required this.fieldList,
   });
 
   final String klassName;
-  final List<OneFieldParsed> fieldList;
+  final List<OneParsedField> fieldList;
 
   @override
   String toString() {
-    return getPrettyJSONString({
+    return generatePrettyJsonString({
       'klassName': klassName,
       'fieldList': fieldList.map((e) => jsonDecode(e.toString())).toList(),
     }).toString();
   }
 }
 
-String getPrettyJSONString(jsonObject) {
-  var encoder = new JsonEncoder.withIndent("  ");
-  return encoder.convert(jsonObject);
-}
-
-class OneFieldParsed {
-  OneFieldParsed({
+class OneParsedField {
+  OneParsedField({
     required this.fieldName,
     required this.dataType,
     required this.varName,
@@ -148,7 +149,7 @@ class OneFieldParsed {
 
   @override
   String toString() {
-    return getPrettyJSONString({
+    return generatePrettyJsonString({
       'fieldName': fieldName,
       'dataType': dataType,
       'varName': varName,
