@@ -240,7 +240,7 @@ void run(HookContext context) {
     generateDartFileContent(
       filenameWithoutExtension: dartFilename.replaceAll('.dart', ''),
       klassName: dartKlassName,
-      freezedTextList: freezedAllString,
+      freezedAllString: freezedAllString,
     ),
   );
 }
@@ -338,7 +338,7 @@ List<String> convertUriToFolderNames(String uri) {
 String generateDartFileContent({
   required String filenameWithoutExtension,
   required String klassName,
-  required String freezedTextList,
+  required String freezedAllString,
 }) =>
     '''// ignore_for_file: non_constant_identifier_names, file_names, camel_case_types
 
@@ -352,7 +352,7 @@ part '${filenameWithoutExtension}.freezed.dart';
 part '${filenameWithoutExtension}.g.dart';
 
 /// Created by: Erlang Parasu 2023.
-${freezedTextList}
+${freezedAllString}
 /// NOTE: Chopper response converter.
 FutureOr<Response<dynamic>> converterFor${klassName}(
   Response<dynamic> response,
