@@ -157,7 +157,7 @@ void run(HookContext context) {
   print(prettyJsonText);
 
   final parsedKlassList = parseKlassListFromJsonMap(
-    'the root response',
+    dartKlassName,
     decodedJson,
   );
 
@@ -248,10 +248,11 @@ void run(HookContext context) {
   newFile.createSync(recursive: true);
   newFile.writeAsStringSync(
     generateDartFileContent(
-      filenameWithoutExtension: dartFilename.replaceAll('.dart', ''),
-      klassName: dartKlassName,
-      freezedAllString: freezedAllString,
-    ),
+          filenameWithoutExtension: dartFilename.replaceAll('.dart', ''),
+          klassName: dartKlassName,
+          freezedAllString: freezedAllString,
+        ).trim() +
+        "\n",
   );
 }
 
@@ -362,8 +363,9 @@ part '${filenameWithoutExtension}.freezed.dart';
 part '${filenameWithoutExtension}.g.dart';
 
 /// Created by: Erlang Parasu 2023.
-${freezedAllString}
+
 /// NOTE: Chopper response converter.
+
 FutureOr<Response<dynamic>> converterFor${klassName}(
   Response<dynamic> response,
 ) {
@@ -373,6 +375,9 @@ FutureOr<Response<dynamic>> converterFor${klassName}(
   return response.copyWith(body: model);
 }
 
+/// NOTE: Freezed clases
+
+${freezedAllString}
 ''';
 
 String generateFreezedAnnotationContent({
