@@ -118,21 +118,23 @@ void run(HookContext context) {
   ///
   String jsonText = linesInpResponse.join("\n");
   if (jsonText.startsWith('[') && jsonText.endsWith(']')) {
-    jsonText = '{"my_String":"abc",'
-        '"my_int":1,'
-        '"my_double":0.5,'
-        '"my_bool":true,'
-        '"my_Null":null,'
-        '"my_Map1":{"meta":"example"},'
-        '"my_Map2":{"meta":2},'
-        '"my_Map3":{"meta":true},'
-        '"my_List_String":["a", "b", "c"],'
-        '"my_List_int":[1, 2, 3],'
-        '"my_List_double":[0.1, 0.2, 0.3],'
-        '"my_List_bool":[true, true, false],'
-        '"my_List_Null":[null, null, null],'
-        '"my_List_Map":[{"id":1,"name":"One"}, {"id":2,"name":"Two"}],'
-        '"data":$jsonText}';
+    // jsonText = '{"my_String":"abc",'
+    //     '"my_int":1,'
+    //     '"my_double":0.5,'
+    //     '"my_bool":true,'
+    //     '"my_Null":null,'
+    //     '"my_Map1":{"meta":"example"},'
+    //     '"my_Map2":{"meta":2},'
+    //     '"my_Map3":{"meta":true},'
+    //     '"my_List_String":["a", "b", "c"],'
+    //     '"my_List_int":[1, 2, 3],'
+    //     '"my_List_double":[0.1, 0.2, 0.3],'
+    //     '"my_List_bool":[true, true, false],'
+    //     '"my_List_Null":[null, null, null],'
+    //     '"my_List_Map":[{"id":1,"name":"One"}, {"id":2,"name":"Two"}],'
+    //     '"data":$jsonText}';
+
+    jsonText = '{"data":$jsonText}';
   }
 
   if (jsonText.startsWith('{') && jsonText.endsWith('}')) {
