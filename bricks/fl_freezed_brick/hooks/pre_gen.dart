@@ -353,7 +353,7 @@ part '${filenameWithoutExtension}.g.dart';
 
 /// Created by: Erlang Parasu 2023.
 ${freezedTextList}
-
+/// NOTE: Chopper response converter.
 FutureOr<Response<dynamic>> converterFor${klassName}(
   Response<dynamic> response,
 ) {
