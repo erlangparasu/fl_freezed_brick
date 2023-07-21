@@ -415,7 +415,11 @@ part '${filenameWithoutExtension}.g.dart';
 FutureOr<Response<dynamic>> converterFor${klassName}(
   Response<dynamic> response,
 ) {
-  final bodyString = response.bodyString;
+  var bodyString = response.bodyString;
+  if (bodyString.startsWith('[') && bodyString.endsWith(']')) {
+    final modifiedBodyString = '{"data":\$bodyString}';
+    bodyString = modifiedBodyString;
+  }
   final jsonMap = jsonDecode(bodyString) as Map<String, dynamic>;
   final model = ${klassName}.fromJson(jsonMap);
   return response.copyWith(body: model);
