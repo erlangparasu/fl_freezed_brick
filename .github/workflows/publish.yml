@@ -21,14 +21,13 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: dart-lang/setup-dart@v1
-      - run: cd bricks/fl_freezed_brick/hooks
-      - run: dart pub get
-      - run: mkdir ${{ matrix.runs-on }}
-      - run: dart compile exe app.dart -o ${{ matrix.runs-on }}/${{ matrix.binary-name }}
+      - run: cd bricks/fl_freezed_brick/hooks && dart pub get
+      - run: cd bricks/fl_freezed_brick/hooks && mkdir ${{ matrix.runs-on }}
+      - run: cd bricks/fl_freezed_brick/hooks && dart compile exe app.dart -o ${{ matrix.runs-on }}/${{ matrix.binary-name }}
       - uses: actions/upload-artifact@v2
         with:
           name: bin-${{ matrix.runs-on }}
-          path: ${{ matrix.runs-on }}
+          path: bricks/fl_freezed_brick/hooks/${{ matrix.runs-on }}
 
   release:
     needs: compile
