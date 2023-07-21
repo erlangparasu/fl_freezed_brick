@@ -4,6 +4,7 @@
 
 A new brick created with the Mason CLI.
 
+<!--
 ## How To Use
 
 Example
@@ -48,13 +49,18 @@ class MyGetProfileResponse with _$MyGetProfileResponse {
 FutureOr<Response<dynamic>> responseConverterForMyGetProfileResponse(
   Response<dynamic> response,
 ) {
-  final bodyString = response.bodyString;
+  var bodyString = response.bodyString;
+  if (bodyString.startsWith('[') && bodyString.endsWith(']')) {
+    final modifiedBodyString = '{"data":\$bodyString}';
+    bodyString = modifiedBodyString;
+  }
   final jsonMap = jsonDecode(bodyString) as Map<String, dynamic>;
   final model = MyGetProfileResponse.fromJson(jsonMap);
   return response.copyWith(body: model);
 }
 ```
 
+-->
 
 ## About
 
