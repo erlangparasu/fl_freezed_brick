@@ -16,6 +16,8 @@ void run(HookContext context) {
     return;
   }
 
+  context.logger.info('File found: $filename');
+
   // fileObj.absolute;
 
   // // Debug
@@ -29,10 +31,13 @@ void run(HookContext context) {
   // Update vars.
   // context.vars['current_year'] = DateTime.now().year;
 
+  context.logger.info('Generating...');
   generateOneFile(filename, context);
+  context.logger.info('Generating done.');
 }
 
 void generateOneFile(String filename, HookContext context) {
+  context.logger.info('Reading file...');
   final theFilename = filename;
   var theFile = File(theFilename);
   final lines = theFile.readAsLinesSync();
@@ -54,6 +59,7 @@ void generateOneFile(String filename, HookContext context) {
   bool captureCurl = false;
   bool captureResponse = false;
 
+  context.logger.info('Reading lines...');
   for (var line in lines) {
     // context.logger.info('line: $line');
 
@@ -103,17 +109,25 @@ void generateOneFile(String filename, HookContext context) {
   print("---RESPONSE---");
   print(linesInpResponse.join("\n"));
 
+  context.logger.info('Parsing url path...');
+
   /// Url path.
   String inputUri = linesInpUri.first;
   print({'inputUri': inputUri});
+
+  context.logger.info('Parsing filename...');
 
   /// Response filename.
   String dartFilename = convertUriToDartFilename(inputUri);
   print({'dartFilename': dartFilename});
 
+  context.logger.info('Parsing class name...');
+
   /// Response klassname.
   String dartKlassName = convertUriToDartKlassName(inputUri);
   print({'dartKlassName': dartKlassName});
+
+  context.logger.info('Parsing folder names...');
 
   /// Folder names.
   final folderNames = convertUriToFolderNames(inputUri);
@@ -126,6 +140,8 @@ void generateOneFile(String filename, HookContext context) {
   // - an array
   // - a boolean
   // - null
+
+  context.logger.info('Parsing json...');
 
   ///
   String jsonText = linesInpResponse.join("\n");
@@ -155,6 +171,8 @@ void generateOneFile(String filename, HookContext context) {
     throw Exception('err_invalid_json_content');
   }
 
+  context.logger.info('Decode json...');
+
   final Map<String, dynamic> decodedJson = jsonDecode(
     jsonText,
     // reviver: (key, value) {
@@ -168,7 +186,9 @@ void generateOneFile(String filename, HookContext context) {
     // },
   );
   final prettyJsonText = generatePrettyJsonString(decodedJson);
-  print(prettyJsonText);
+  // print(prettyJsonText);
+
+  context.logger.info('Parse class names...');
 
   final parsedKlassList = parseKlassListFromJsonMap(
     dartKlassName,
@@ -215,15 +235,15 @@ void generateOneFile(String filename, HookContext context) {
     }
   }
 
-  print('<filteredParsedKlassList>');
-  print(
-    generatePrettyJsonString(
-      jsonDecode(
-        filteredParsedKlassList.toString(),
-      ),
-    ),
-  );
-  print('</filteredParsedKlassList>');
+  // print('<filteredParsedKlassList>');
+  // print(
+  //   generatePrettyJsonString(
+  //     jsonDecode(
+  //       filteredParsedKlassList.toString(),
+  //     ),
+  //   ),
+  // );
+  // print('</filteredParsedKlassList>');
 
   // print(parsedKlassList.length);
   // print(filteredParsedKlassList.length);
@@ -238,6 +258,8 @@ void generateOneFile(String filename, HookContext context) {
   // // print(jsonDecode('null') as Map<String, dynamic>);
 
   ///
+
+  context.logger.info('Parsing json fields...');
 
   String freezedAllString = '';
   for (var parsedKlassItem in filteredParsedKlassList) {
@@ -254,11 +276,15 @@ void generateOneFile(String filename, HookContext context) {
     freezedAllString += freezedString;
   }
 
+  context.logger.info('Generating dart file...');
+
+  final slash = Platform.pathSeparator;
   context.logger.info(
     'Generating file: '
-    'lib/models/${folderNames.join('/')}/${dartFilename}',
+    'lib${slash}models/${folderNames.join('${slash}')}${slash}${dartFilename}',
   );
-  final newFile = File('lib/models/${folderNames.join('/')}/${dartFilename}');
+  final newFile = File(
+      'lib${slash}models${slash}${folderNames.join('${slash}')}${slash}${dartFilename}');
   newFile.createSync(recursive: true);
   newFile.writeAsStringSync(
     generateDartFileContent(
@@ -268,6 +294,8 @@ void generateOneFile(String filename, HookContext context) {
         ).trim() +
         "\n",
   );
+
+  context.logger.info('Generating dart file done.');
 }
 
 /// JSON data types
@@ -294,7 +322,7 @@ String convertUriToDartFilename(String uri) {
       .map((e) => e.pascalCase)
       .toList();
   for (var segment in segmentListFiltered) {
-    print(segment);
+    // print(segment);
   }
 
   final joined = segmentListFiltered.last;
@@ -322,7 +350,7 @@ String convertUriToDartKlassName(String uri) {
       .toList();
 
   for (var segment in segmentListFiltered) {
-    print(segment);
+    // print(segment);
   }
 
   // print(segmentListFiltered.join("U") + 'UResponse');
@@ -352,7 +380,7 @@ List<String> convertUriToFolderNames(String uri) {
       .map((e) => e.snakeCase)
       .toList();
   for (var segment in segmentListFiltered) {
-    print(segment);
+    // print(segment);
   }
 
   segmentListFiltered.removeLast();

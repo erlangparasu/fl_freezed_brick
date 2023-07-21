@@ -14,12 +14,12 @@ List<OneParsedKlass> parseKlassListFromJsonMap(
 
   for (var key in decodedJson.keys) {
     final value = decodedJson[key];
-    print({
-      'key_type': key.runtimeType,
-      'key': key,
-      'value_type': value.runtimeType,
-      'value': value,
-    });
+    // print({
+    //   'key_type': key.runtimeType,
+    //   'key': key,
+    //   'value_type': value.runtimeType,
+    //   'value': value,
+    // });
 
     // required this.fieldName,
     // required this.dataType,
