@@ -2,3 +2,4 @@
 /_*.md
 /fl_freezed_brick.log
 /lib/models/*
+.DS_Store
