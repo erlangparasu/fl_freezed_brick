@@ -10,6 +10,8 @@ void run(HookContext context) {
   // Read vars.
   String filename = context.vars['input_filename'];
 
+  context.logger.info('filename: $filename');
+
   final File fileObj = File(filename);
   if (!fileObj.existsSync()) {
     context.logger.err('File not found: $filename');
